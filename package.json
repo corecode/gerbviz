@@ -1,0 +1,17 @@
+{
+  "name": "gerbviz2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "parser.js",
+  "dependencies": {
+    "benchmark": "^1.0.0",
+    "microtime": "^2.0.0",
+    "pegjs": "^0.9.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
