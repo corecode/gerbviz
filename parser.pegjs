@@ -1,17 +1,62 @@
+{
+    var numFormat;
+
+    function parseCoord(tag, sig, str) {
+        var tagMap = {X: 'x', Y: 'y', I: 'xoff', J: 'yoff'};
+        var format;
+
+        if (tag === 'X' || tag === 'I')
+            format = numFormat.x;
+        else
+            format = numFormat.y;
+
+        var total = format.pre + format.post;
+
+        str = str.join("");
+        if (str.length < total) {
+            if (numFormat.omission === 'leading')
+                str = '000000000000' + str;
+            else
+                str = str + '000000000000';
+        }
+
+        var frac = str.slice(-format.post);
+        var integer = str.slice(0, -format.post);
+        var numstr = (sig || '') + integer + '.' + frac;
+        var num = parseFloat(numstr);
+        var coord = {};
+
+        coord[tagMap[tag]] = num;
+
+        return coord;
+    }
+
+    function mergeCoord(coord) {
+        var result = {};
+
+        coord.forEach(function(c) {
+            for (var k in c) result[k] = c[k];
+        });
+
+        return result;
+    }
+}
+
 gerber = command*
 command = '%' cmd:command_content '%' newline {return cmd}
         / cmd:command_content newline {return cmd}
 command_content = cmd:(func / parameter) '*' {return cmd}
 
-func = interpolate / move / flash / apperture / region / quadrant / mode_interpolate / comment / eof
+func = coord_func / apperture / region / quadrant / mode_interpolate / comment / eof
+coord_func = coord:coordinate func:(interpolate / move / flash) {coord.type = func; return coord}
 
-interpolate = coord:coordinate 'D' '0'? '1' {return {type: "interpolate", coord: coord}}
-move = coord:coordinate_xy 'D' '0'? '2' {return {type: "move", coord: coord}}
-flash = coord:coordinate_xy 'D' '0'? '3' {return {type: "flash", coord: coord}}
+interpolate = 'D' '0'? '1' {return "interpolate"}
+move = 'D' '0'? '2' {return "move"}
+flash = 'D' '0'? '3' {return "flash"}
 
 mode_interpolate = linear / arc
-linear = ('G' '0'? '1') op:(interpolate / move)? {var v = {type: "mode", mode: "linear"}; if (op) v.op = op; return v}
-arc = arc:(arc_cw / arc_ccw) op:(interpolate / move)? {var v = {type: "mode", mode: arc}; if (op) v.op = op; return v}
+linear = ('G' '0'? '1') op:(coord_func)? {var v = {type: "mode", mode: "linear"}; if (op) v.op = op; return v}
+arc = arc:(arc_cw / arc_ccw) op:(coord_func)? {var v = {type: "mode", mode: arc}; if (op) v.op = op; return v}
 arc_cw = 'G' '0'? '2' {return "cw"}
 arc_ccw = 'G' '0'? '3' {return "ccw"}
 
@@ -31,7 +76,7 @@ eof = 'M02' {return {type: "eof"}}
 
 parameter = format / unit_mode / apperture_def / attribute
 
-format = 'FS' om:omission_format not:notation_format x:x_number_format y:y_number_format {return {type: "format", omission: om, notation: not, x: x, y: y}}
+format = 'FS' om:omission_format not:notation_format x:x_number_format y:y_number_format {numFormat = {type: "format", omission: om, notation: not, x: x, y: y}; return numFormat}
 omission_format = omit_leading / omit_trailing
 omit_leading = 'L' {return "leading"}
 omit_trailing = 'T' {return "trailing"}
@@ -60,14 +105,9 @@ file_attrib = 'TF' a:generic_attrib {a.type = "file-attr"; return a}
 apperture_attrib =  'TA' a:generic_attrib {a.type = "apperture-attr"; return a}
 generic_attrib = n:name ',' v:string {return {name: n, value: v}}
 
-coordinate = &[XYIJ] x:coordinate_x? y:coordinate_y? xoff:coordinate_xoff? yoff:coordinate_yoff? {var v={}; if (x) v.x = x; if (y) v.y = y; if (xoff) v.xoff = xoff; if (yoff) v.yoff = yoff; return v}
-coordinate_xy = &[XY] x:coordinate_x? y:coordinate_y? {var v={}; if (x) v.x = x; if (y) v.y = y; return v}
-coordinate_x = 'X' x:integer {return x}
-coordinate_y = 'Y' y:integer {return y}
-coordinate_xoff = 'I' xoff:integer {return xoff}
-coordinate_yoff = 'J' yoff:integer {return yoff}
+coordinate = elems:coord_elem+ {return mergeCoord(elems)}
+coord_elem = tag:[XYIJ] sig:[+-]? num:[0-9]+ {return parseCoord(tag, sig, num)}
 
-integer = [+-]? [0-9]+ {return parseInt(text())}
 positive_integer = [1-9][0-9]+ {return parseInt(text())}
 decimal = [+-]? [0-9]+ ([.][0-9]*)? {return parseFloat(text())}
 
