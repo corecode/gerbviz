@@ -1,0 +1,27 @@
+<html>
+  <head>
+    <script src="parser.js"></script>
+    <script src="gerbviz.js"></script>
+    <style>
+      #container {
+      white-space: nowrap;
+      }
+      #txt {
+      width: 50%;
+      }
+      #result {
+      width: 50%;
+      vertical-align: top;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <textarea id="txt" rows="20"></textarea>
+      <svg id="result" xmlns="http://www.w3.org/2000/svg" version="1.1"
+           xmlns:xlink="http://www.w3.org/1999/xlink">
+      </svg>
+    </div>
+    <div id="errors">foo</div>
+  </body>
+</html>
