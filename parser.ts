@@ -137,10 +137,12 @@ export function parse(source: string, messageCb, handleCb) {
             break;
         }
 
+        // XXX
         switch (hole.length) {
         case 1:
-            // circular hole
-
+            break;
+        case 2:
+            break;
         }
 
         apperture.path = path;
@@ -170,6 +172,7 @@ export function parse(source: string, messageCb, handleCb) {
                     case 1:
                         if (linear) {
                             curpath.push(['L', x, y]);
+                            // XXX rectangles
                         } else {
                             var radius = Math.sqrt(center_x * center_x + center_y * center_y);
                             var startangle = Math.atan2(-center_y, -center_x);
@@ -247,22 +250,22 @@ export function parse(source: string, messageCb, handleCb) {
                 case 'FS':
                     parseFS(param);
                     break;
-                case 'MO':
-                    break;
+                // case 'MO':
+                //     break;
                 case 'AD':
                     parseAD(param);
                     break;
-                case 'AM':
-                    break;
-                case 'SR':
-                    break;
+                // case 'AM':
+                //     break;
+                // case 'SR':
+                //     break;
                 case 'LP':
                     handleCb({type: 'polarity', clear: param[2] == 'C'});
                     break;
-                case 'TF':
-                    break;
-                case 'TA':
-                    break;
+                // case 'TF':
+                //     break;
+                // case 'TA':
+                //     break;
                 default:
                     messageCb("param ", param);
                 }
