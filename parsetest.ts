@@ -1,5 +1,4 @@
 /// <reference path='./parser.ts' />
-/// <reference path='typings/node/node.d.ts' />
 
 import GerbParse = require('./parser');
 import fs = require('fs');

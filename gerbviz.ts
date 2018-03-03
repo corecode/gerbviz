@@ -34,7 +34,6 @@ function reparse() {
 
     parse(txt.value, parseProgress, parseData);
     var bbox = maxbbox(svg);
-    svg.viewBox.baseVal = bbox; // for gecko
     svg.viewBox.baseVal.x = bbox.x; // for chrome
     svg.viewBox.baseVal.y = bbox.y;
     svg.viewBox.baseVal.width = bbox.width;
